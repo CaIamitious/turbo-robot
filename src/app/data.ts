@@ -6,7 +6,7 @@ export type Match = {
   id: number;
   sport: string;
   competition: string;
-  date: string; // ISO
+  date: string;
   time: string;
   home: string;
   homeBadge: string;
@@ -43,6 +43,74 @@ export const DEFAULT_SPORTS: Sport[] = [
   { id: "rugby", label: "Rugby", emoji: "🏉" },
   { id: "cycling", label: "Cycling", emoji: "🚴" },
 ];
+
+const SPORTSDB_BASE = "https://www.thesportsdb.com/api/v1/json/3";
+
+async function fetchFootballMatches(): Promise<Match[]> {
+  try {
+    const leagues = [4328, 4335, 4331]; // Premier League, Champions League, La Liga
+    const results: Match[] = [];
+    for (const leagueId of leagues) {
+      const res = await fetch(`${SPORTSDB_BASE}/eventsnextleague.php?id=${leagueId}`);
+      const data = await res.json();
+      if (!data.events) continue;
+      for (const e of data.events) {
+        results.push({
+          id: parseInt(e.idEvent),
+          sport: "Football",
+          competition: e.strLeague,
+          date: e.dateEvent,
+          time: e.strTime?.slice(0, 5) ?? "TBC",
+          home: e.strHomeTeam,
+          homeBadge: e.strHomeTeam.slice(0, 3).toUpperCase(),
+          away: e.strAwayTeam,
+          awayBadge: e.strAwayTeam.slice(0, 3).toUpperCase(),
+          homeScore: e.intHomeScore ? parseInt(e.intHomeScore) : null,
+          awayScore: e.intAwayScore ? parseInt(e.intAwayScore) : null,
+          status: e.strStatus === "Match Finished" ? "finished" : e.strStatus === "In Progress" ? "live" : "upcoming",
+          venue: e.strVenue ?? undefined,
+        });
+      }
+    }
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+async function fetchTennisMatches(): Promise<Match[]> {
+  try {
+    const res = await fetch(`${SPORTSDB_BASE}/eventsnextleague.php?id=4887`);
+    const data = await res.json();
+    if (!data.events) return [];
+    return data.events.map((e: any, i: number) => ({
+      id: 10000 + i,
+      sport: "Tennis",
+      competition: e.strLeague,
+      date: e.dateEvent,
+      time: e.strTime?.slice(0, 5) ?? "TBC",
+      home: e.strHomeTeam,
+      homeBadge: e.strHomeTeam.slice(0, 3).toUpperCase(),
+      away: e.strAwayTeam,
+      awayBadge: e.strAwayTeam.slice(0, 3).toUpperCase(),
+      homeScore: e.intHomeScore ? parseInt(e.intHomeScore) : null,
+      awayScore: e.intAwayScore ? parseInt(e.intAwayScore) : null,
+      status: e.strStatus === "Match Finished" ? "finished" : e.strStatus === "In Progress" ? "live" : "upcoming",
+      venue: e.strVenue ?? undefined,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchAllMatches(): Promise<Match[]> {
+  const [football, tennis] = await Promise.all([
+    fetchFootballMatches(),
+    fetchTennisMatches(),
+  ]);
+  const all = [...football, ...tennis];
+  return all.length > 0 ? all : MATCHES;
+}
 
 export const MATCHES: Match[] = [
   {
@@ -128,102 +196,6 @@ export const MATCHES: Match[] = [
     broadcasters: ["Sky Sports Golf", "NBC"],
     venue: "Royal St George's, Kent",
   },
-  {
-    id: 6,
-    sport: "Tennis",
-    competition: "Wimbledon · QF",
-    date: "2026-05-30",
-    time: "14:00",
-    home: "C. Alcaraz",
-    homeBadge: "ALC",
-    away: "J. Sinner",
-    awayBadge: "SIN",
-    homeScore: null,
-    awayScore: null,
-    status: "upcoming",
-    broadcasters: ["BBC", "ESPN"],
-    venue: "Centre Court, Wimbledon",
-  },
-  {
-    id: 7,
-    sport: "Football",
-    competition: "La Liga",
-    date: "2026-05-31",
-    time: "21:00",
-    home: "Barcelona",
-    homeBadge: "BAR",
-    away: "Real Madrid",
-    awayBadge: "RMA",
-    homeScore: null,
-    awayScore: null,
-    status: "upcoming",
-    broadcasters: ["La Liga TV", "ESPN+"],
-    venue: "Spotify Camp Nou, Barcelona",
-  },
-  {
-    id: 8,
-    sport: "Football",
-    competition: "Premier League",
-    date: "2026-05-27",
-    time: "FT",
-    home: "Tottenham",
-    homeBadge: "TOT",
-    away: "Man Utd",
-    awayBadge: "MUN",
-    homeScore: 3,
-    awayScore: 1,
-    status: "finished",
-    broadcasters: ["Sky Sports"],
-    venue: "Tottenham Hotspur Stadium",
-  },
-  {
-    id: 9,
-    sport: "Football",
-    competition: "La Liga",
-    date: "2026-05-27",
-    time: "FT",
-    home: "Atletico Madrid",
-    homeBadge: "ATM",
-    away: "Sevilla",
-    awayBadge: "SEV",
-    homeScore: 2,
-    awayScore: 0,
-    status: "finished",
-    broadcasters: ["La Liga TV"],
-    venue: "Metropolitano, Madrid",
-  },
-  {
-    id: 10,
-    sport: "Tennis",
-    competition: "Roland Garros · QF",
-    date: "2026-05-27",
-    time: "FT",
-    home: "C. Alcaraz",
-    homeBadge: "ALC",
-    away: "H. Hurkacz",
-    awayBadge: "HUR",
-    homeScore: 3,
-    awayScore: 1,
-    status: "finished",
-    broadcasters: ["Eurosport"],
-    venue: "Court Philippe-Chatrier, Paris",
-  },
-  {
-    id: 11,
-    sport: "Football",
-    competition: "Champions League · Final",
-    date: "2026-06-01",
-    time: "20:00",
-    home: "Real Madrid",
-    homeBadge: "RMA",
-    away: "Arsenal",
-    awayBadge: "ARS",
-    homeScore: null,
-    awayScore: null,
-    status: "upcoming",
-    broadcasters: ["BT Sport", "CBS Sports"],
-    venue: "Allianz Arena, Munich",
-  },
 ];
 
 export const ARTICLES: Article[] = [
@@ -263,56 +235,14 @@ export const ARTICLES: Article[] = [
     image: "https://images.unsplash.com/photo-1606443192517-919653213206?w=800&h=500&fit=crop&auto=format",
     tags: ["McIlroy", "The Open", "Golf"],
   },
-  {
-    id: 4,
-    sport: "Football",
-    category: "Preview",
-    title: "Champions League final preview: Real Madrid vs Arsenal",
-    summary: "Sunday's showpiece in Munich is arguably the most eagerly awaited European final in a decade.",
-    author: "Mark Owens",
-    readTime: "8 min",
-    date: "12h ago",
-    image: "https://images.unsplash.com/photo-1434648957308-5e6a859697e8?w=800&h=500&fit=crop&auto=format",
-    tags: ["Real Madrid", "Arsenal", "Champions League", "Football"],
-  },
-  {
-    id: 5,
-    sport: "Tennis",
-    category: "Analysis",
-    title: "Why clay exposed weaknesses in Sinner's game",
-    summary: "Despite a dominant hard-court season, Jannik Sinner's form on clay this spring has raised questions.",
-    author: "Sophie Bernard",
-    readTime: "5 min",
-    date: "1d ago",
-    image: "https://images.unsplash.com/photo-1545151414-8a948e1ea54f?w=800&h=500&fit=crop&auto=format",
-    tags: ["Sinner", "Roland Garros", "Tennis"],
-  },
-  {
-    id: 6,
-    sport: "Football",
-    category: "Transfer",
-    title: "Man City eye €120m striker as Haaland future unclear",
-    summary: "City are monitoring three forwards ahead of the summer window as uncertainty surrounds Erling Haaland's future.",
-    author: "Tom Walsh",
-    readTime: "4 min",
-    date: "2d ago",
-    image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=800&h=500&fit=crop&auto=format",
-    tags: ["Man City", "Transfers", "Football"],
-  },
 ];
 
 export const LINEUPS: Record<number, { home: string[]; away: string[]; homeSubs: string[]; awaySubs: string[] }> = {
   1: {
-    home: ["Raya", "White", "Saliba", "Gabriel", "Zinchenko", "Odegaard", "Rice", "Havertz", "Saka", "Martinelli", "Jesus"],
-    away: ["Sanchez", "James", "Chalobah", "Colwill", "Chilwell", "Caicedo", "Fernandez", "Palmer", "Sterling", "Nkunku", "Jackson"],
-    homeSubs: ["Turner", "Tomiyasu", "Kiwior", "Trossard", "Vieira"],
-    awaySubs: ["Petrovic", "Hall", "Disasi", "Mudryk", "Madueke"],
-  },
-  2: {
-    home: ["Courtois", "Carvajal", "Militao", "Alaba", "Mendy", "Valverde", "Tchouameni", "Kroos", "Bellingham", "Vinicius", "Rodrygo"],
-    away: ["Neuer", "Kimmich", "Upamecano", "De Ligt", "Davies", "Goretzka", "Laimer", "Musiala", "Sane", "Coman", "Kane"],
-    homeSubs: ["Lunin", "Vazquez", "Nacho", "Camavinga", "Joselu"],
-    awaySubs: ["Ulreich", "Mazraoui", "Pavard", "Gnabry", "Tel"],
+    home: ["Raya","White","Saliba","Gabriel","Zinchenko","Odegaard","Rice","Havertz","Saka","Martinelli","Jesus"],
+    away: ["Sanchez","James","Chalobah","Colwill","Chilwell","Caicedo","Fernandez","Palmer","Sterling","Nkunku","Jackson"],
+    homeSubs: ["Turner","Tomiyasu","Kiwior","Trossard","Vieira"],
+    awaySubs: ["Petrovic","Hall","Disasi","Mudryk","Madueke"],
   },
 };
 
@@ -325,14 +255,5 @@ export const MATCH_STATS: Record<number, { label: string; home: string | number;
     { label: "Fouls", home: 10, away: 13 },
     { label: "Yellow Cards", home: 1, away: 2 },
     { label: "Pass Accuracy", home: "87%", away: "81%" },
-  ],
-  2: [
-    { label: "Possession", home: "54%", away: "46%" },
-    { label: "Shots", home: 11, away: 12 },
-    { label: "Shots on Target", home: 4, away: 5 },
-    { label: "Corners", home: 5, away: 6 },
-    { label: "Fouls", home: 8, away: 11 },
-    { label: "Yellow Cards", home: 2, away: 1 },
-    { label: "Pass Accuracy", home: "89%", away: "84%" },
   ],
 };
