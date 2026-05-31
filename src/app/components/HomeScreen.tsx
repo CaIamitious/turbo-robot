@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, SlidersHorizontal, ChevronRight } from "lucide-react";
-import { MATCHES, ARTICLES, DEFAULT_SPORTS } from "../data";
+import { MATCHES, ARTICLES, DEFAULT_SPORTS, fetchAllMatches } from "../data";
+import type { Match } from "../data";
 import { EditSportsModal } from "./EditSportsModal";
 import { SearchModal } from "./SearchModal";
 
@@ -26,28 +27,32 @@ export function HomeScreen({ followedSports, onFollowedSportsChange, onSelectFix
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [showEditSports, setShowEditSports] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [matches, setMatches] = useState<Match[]>(MATCHES);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAllMatches().then((data) => {
+      setMatches(data);
+      setLoading(false);
+    });
+  }, []);
 
   const myFilters = DEFAULT_SPORTS.filter((s) => followedSports.includes(s.id));
 
-  // Matches filtered by sport selection
-  const filteredMatches = MATCHES.filter((m) => {
+  const filteredMatches = matches.filter((m) => {
     if (activeFilter === "all") return followedSports.includes(m.sport.toLowerCase());
     return m.sport.toLowerCase() === activeFilter;
   });
 
   const liveMatches = filteredMatches.filter((m) => m.status === "live");
-
-  // When no live, show upcoming; when no upcoming either, show recent results
   const upcomingMatches = filteredMatches.filter((m) => m.status === "upcoming").slice(0, 4);
   const recentResults = filteredMatches.filter((m) => m.status === "finished").slice(0, 3);
 
-  // Personalised articles — prioritise sports user follows
   const filteredArticles = ARTICLES.filter((a) => {
     if (activeFilter === "all") return followedSports.includes(a.sport.toLowerCase());
     return a.sport.toLowerCase() === activeFilter;
   });
 
-  // Fallback to all articles if no match
   const articles = filteredArticles.length > 0 ? filteredArticles : ARTICLES;
 
   if (showSearch) {
@@ -72,7 +77,6 @@ export function HomeScreen({ followedSports, onFollowedSportsChange, onSelectFix
 
   return (
     <div className="flex flex-col">
-      {/* Top bar */}
       <div className="flex items-center justify-between px-5 pt-12 pb-3">
         <span className="text-lg font-medium text-foreground">SportsPulse</span>
         <button
@@ -83,7 +87,6 @@ export function HomeScreen({ followedSports, onFollowedSportsChange, onSelectFix
         </button>
       </div>
 
-      {/* Sport filter pills */}
       <div className="px-4 pb-4">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5 items-center">
           <button
@@ -115,8 +118,9 @@ export function HomeScreen({ followedSports, onFollowedSportsChange, onSelectFix
         </div>
       </div>
 
-      {/* Live section */}
-      {liveMatches.length > 0 ? (
+      {loading ? (
+        <div className="px-4 py-8 text-center text-sm text-muted-foreground">Loading latest fixtures…</div>
+      ) : liveMatches.length > 0 ? (
         <section className="px-4 mb-5">
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-1.5">
@@ -162,7 +166,6 @@ export function HomeScreen({ followedSports, onFollowedSportsChange, onSelectFix
           </div>
         </section>
       ) : upcomingMatches.length > 0 ? (
-        /* No live — show upcoming */
         <section className="px-4 mb-5">
           <div className="flex items-center justify-between mb-2.5">
             <span className="text-xs font-medium tracking-widest uppercase text-foreground">Upcoming</span>
@@ -187,7 +190,6 @@ export function HomeScreen({ followedSports, onFollowedSportsChange, onSelectFix
           </div>
         </section>
       ) : recentResults.length > 0 ? (
-        /* No live, no upcoming — show recent results */
         <section className="px-4 mb-5">
           <p className="text-xs font-medium tracking-widest uppercase text-foreground mb-2.5">Recent Results</p>
           <div className="flex flex-col divide-y divide-border rounded-2xl overflow-hidden border border-border bg-white">
@@ -208,9 +210,10 @@ export function HomeScreen({ followedSports, onFollowedSportsChange, onSelectFix
             ))}
           </div>
         </section>
-      ) : null}
+      ) : (
+        <div className="px-4 py-8 text-center text-sm text-muted-foreground">No fixtures available</div>
+      )}
 
-      {/* Personalised articles */}
       <section className="px-4 mb-6">
         <div className="flex items-center justify-between mb-2.5">
           <span className="text-xs font-medium tracking-widest uppercase text-foreground">For You</span>
@@ -219,7 +222,6 @@ export function HomeScreen({ followedSports, onFollowedSportsChange, onSelectFix
           </button>
         </div>
 
-        {/* Featured article */}
         {articles[0] && (
           <button
             onClick={() => onSelectArticle(articles[0].id)}
@@ -242,7 +244,6 @@ export function HomeScreen({ followedSports, onFollowedSportsChange, onSelectFix
           </button>
         )}
 
-        {/* Compact list */}
         <div className="flex flex-col gap-2">
           {articles.slice(1, 4).map((a) => (
             <button
