@@ -48,10 +48,10 @@ const SPORTSDB_BASE = "https://www.thesportsdb.com/api/v1/json/123";
 
 async function fetchFootballMatches(): Promise<Match[]> {
   try {
-    const leagues = [4328, 4335, 4331]; // Premier League, Champions League, La Liga
+    const leagues = [4328, 4335, 4331];
     const results: Match[] = [];
     for (const leagueId of leagues) {
-      const res = await fetch(`${SPORTSDB_BASE}/eventsnextleague.php?id=${leagueId}`);
+      const res = await fetch(`${SPORTSDB_BASE}/eventspastleague.php?id=${leagueId}`);
       const data = await res.json();
       if (!data.events) continue;
       for (const e of data.events) {
@@ -67,7 +67,7 @@ async function fetchFootballMatches(): Promise<Match[]> {
           awayBadge: e.strAwayTeam.slice(0, 3).toUpperCase(),
           homeScore: e.intHomeScore ? parseInt(e.intHomeScore) : null,
           awayScore: e.intAwayScore ? parseInt(e.intAwayScore) : null,
-          status: e.strStatus === "Match Finished" ? "finished" : e.strStatus === "In Progress" ? "live" : "upcoming",
+          status: e.strStatus === "FT" ? "finished" : e.strStatus === "In Progress" ? "live" : "upcoming",
           venue: e.strVenue ?? undefined,
         });
       }
@@ -80,7 +80,7 @@ async function fetchFootballMatches(): Promise<Match[]> {
 
 async function fetchTennisMatches(): Promise<Match[]> {
   try {
-    const res = await fetch(`${SPORTSDB_BASE}/eventsnextleague.php?id=4887`);
+    const res = await fetch(`${SPORTSDB_BASE}/eventspastleague.php?id=4887`);
     const data = await res.json();
     if (!data.events) return [];
     return data.events.map((e: any, i: number) => ({
@@ -95,7 +95,7 @@ async function fetchTennisMatches(): Promise<Match[]> {
       awayBadge: e.strAwayTeam.slice(0, 3).toUpperCase(),
       homeScore: e.intHomeScore ? parseInt(e.intHomeScore) : null,
       awayScore: e.intAwayScore ? parseInt(e.intAwayScore) : null,
-      status: e.strStatus === "Match Finished" ? "finished" : e.strStatus === "In Progress" ? "live" : "upcoming",
+      status: e.strStatus === "FT" ? "finished" : e.strStatus === "In Progress" ? "live" : "upcoming",
       venue: e.strVenue ?? undefined,
     }));
   } catch {
@@ -117,18 +117,16 @@ export const MATCHES: Match[] = [
     id: 1,
     sport: "Football",
     competition: "Premier League",
-    date: "2026-05-28",
-    time: "20:00",
-    home: "Arsenal",
-    homeBadge: "ARS",
-    away: "Chelsea",
-    awayBadge: "CHE",
-    homeScore: 2,
-    awayScore: 1,
-    status: "live",
-    minute: "73'",
-    broadcasters: ["Sky Sports", "NBC Sports"],
-    venue: "Emirates Stadium, London",
+    date: "2026-05-24",
+    time: "15:00",
+    home: "West Ham United",
+    homeBadge: "WHU",
+    away: "Leeds United",
+    awayBadge: "LEE",
+    homeScore: 3,
+    awayScore: 0,
+    status: "finished",
+    venue: "London Stadium",
   },
   {
     id: 2,
@@ -142,8 +140,7 @@ export const MATCHES: Match[] = [
     awayBadge: "BAY",
     homeScore: 1,
     awayScore: 1,
-    status: "live",
-    minute: "45+2'",
+    status: "finished",
     broadcasters: ["BT Sport", "CBS Sports"],
     venue: "Bernabéu, Madrid",
   },
@@ -159,29 +156,11 @@ export const MATCHES: Match[] = [
     awayBadge: "DJO",
     homeScore: 2,
     awayScore: 1,
-    status: "live",
-    minute: "Set 3",
-    broadcasters: ["Eurosport", "Tennis Channel"],
+    status: "finished",
     venue: "Court Philippe-Chatrier, Paris",
   },
   {
     id: 4,
-    sport: "Football",
-    competition: "Premier League",
-    date: "2026-05-29",
-    time: "20:00",
-    home: "Man City",
-    homeBadge: "MCI",
-    away: "Liverpool",
-    awayBadge: "LIV",
-    homeScore: null,
-    awayScore: null,
-    status: "upcoming",
-    broadcasters: ["Sky Sports", "NBCSN"],
-    venue: "Etihad Stadium, Manchester",
-  },
-  {
-    id: 5,
     sport: "Golf",
     competition: "The Open",
     date: "2026-05-29",
@@ -227,33 +206,4 @@ export const ARTICLES: Article[] = [
     id: 3,
     sport: "Golf",
     category: "Golf",
-    title: "McIlroy shoots -8 to lead The Open after day one",
-    summary: "Rory McIlroy produced a stunning opening round at Royal St George's, carding eight birdies.",
-    author: "David Carr",
-    readTime: "3 min",
-    date: "8h ago",
-    image: "https://images.unsplash.com/photo-1606443192517-919653213206?w=800&h=500&fit=crop&auto=format",
-    tags: ["McIlroy", "The Open", "Golf"],
-  },
-];
-
-export const LINEUPS: Record<number, { home: string[]; away: string[]; homeSubs: string[]; awaySubs: string[] }> = {
-  1: {
-    home: ["Raya","White","Saliba","Gabriel","Zinchenko","Odegaard","Rice","Havertz","Saka","Martinelli","Jesus"],
-    away: ["Sanchez","James","Chalobah","Colwill","Chilwell","Caicedo","Fernandez","Palmer","Sterling","Nkunku","Jackson"],
-    homeSubs: ["Turner","Tomiyasu","Kiwior","Trossard","Vieira"],
-    awaySubs: ["Petrovic","Hall","Disasi","Mudryk","Madueke"],
-  },
-};
-
-export const MATCH_STATS: Record<number, { label: string; home: string | number; away: string | number }[]> = {
-  1: [
-    { label: "Possession", home: "58%", away: "42%" },
-    { label: "Shots", home: 14, away: 9 },
-    { label: "Shots on Target", home: 6, away: 3 },
-    { label: "Corners", home: 7, away: 4 },
-    { label: "Fouls", home: 10, away: 13 },
-    { label: "Yellow Cards", home: 1, away: 2 },
-    { label: "Pass Accuracy", home: "87%", away: "81%" },
-  ],
-};
+    title: "McIlroy shoots -8 t
