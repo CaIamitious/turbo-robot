@@ -44,7 +44,7 @@ export const DEFAULT_SPORTS: Sport[] = [
   { id: "cycling", label: "Cycling", emoji: "🚴" },
 ];
 
-const SPORTSDB_BASE = "https://www.thesportsdb.com/api/v1/json/3";
+const SPORTSDB_BASE = "https://www.thesportsdb.com/api/v1/json/123";
 
 async function fetchFootballMatches(): Promise<Match[]> {
   try {
