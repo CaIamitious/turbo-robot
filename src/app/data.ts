@@ -206,4 +206,33 @@ export const ARTICLES: Article[] = [
     id: 3,
     sport: "Golf",
     category: "Golf",
-    title: "McIlroy shoots -8 t
+    title: "McIlroy shoots -8 to lead The Open after day one",
+    summary: "Rory McIlroy produced a stunning opening round at Royal St George's, carding eight birdies.",
+    author: "David Carr",
+    readTime: "3 min",
+    date: "8h ago",
+    image: "https://images.unsplash.com/photo-1606443192517-919653213206?w=800&h=500&fit=crop&auto=format",
+    tags: ["McIlroy", "The Open", "Golf"],
+  },
+];
+
+export const LINEUPS: Record<number, { home: string[]; away: string[]; homeSubs: string[]; awaySubs: string[] }> = {
+  1: {
+    home: ["Raya","White","Saliba","Gabriel","Zinchenko","Odegaard","Rice","Havertz","Saka","Martinelli","Jesus"],
+    away: ["Sanchez","James","Chalobah","Colwill","Chilwell","Caicedo","Fernandez","Palmer","Sterling","Nkunku","Jackson"],
+    homeSubs: ["Turner","Tomiyasu","Kiwior","Trossard","Vieira"],
+    awaySubs: ["Petrovic","Hall","Disasi","Mudryk","Madueke"],
+  },
+};
+
+export const MATCH_STATS: Record<number, { label: string; home: string | number; away: string | number }[]> = {
+  1: [
+    { label: "Possession", home: "58%", away: "42%" },
+    { label: "Shots", home: 14, away: 9 },
+    { label: "Shots on Target", home: 6, away: 3 },
+    { label: "Corners", home: 7, away: 4 },
+    { label: "Fouls", home: 10, away: 13 },
+    { label: "Yellow Cards", home: 1, away: 2 },
+    { label: "Pass Accuracy", home: "87%", away: "81%" },
+  ],
+};
